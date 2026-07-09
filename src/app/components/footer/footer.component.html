@@ -1,0 +1,46 @@
+<footer class="w-full bg-slate-900 border-t border-slate-800 text-slate-400 py-8 px-6 mt-auto">
+  <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+
+    <!-- Coluna 1: Logo e Direitos -->
+    <div class="flex flex-col space-y-3 justify-center md:justify-start">
+      <div class="flex items-center space-x-2">
+        <img src="images/logo.png" alt="EKD Tecnologia Logo" class="h-8 w-auto object-contain opacity-80">
+        <div class="flex flex-col leading-none">
+          <span class="font-bold text-xs tracking-wider text-white">EKD 3D</span>
+          <span class="text-[8px] text-slate-500 uppercase tracking-widest font-medium">TECNOLOGIA</span>
+        </div>
+      </div>
+      <p class="text-xs text-slate-500">
+        &copy; {{ anoAtual }} EKD Tecnologia.<br>Todos os direitos reservados.
+      </p>
+    </div>
+
+    <!-- Coluna 2: Links Rápidos de Navegação -->
+    <div class="flex flex-col space-y-2 md:items-center">
+      <div class="text-left">
+        <h4 class="text-white text-xs font-bold uppercase tracking-wider mb-3">Links Úteis</h4>
+        <ul class="space-y-2 text-xs">
+          <li>
+            <a [routerLink]="['/home']" class="hover:text-blue-500 transition-colors">Galeria 3D</a>
+          </li>
+          <li>
+            <a [routerLink]="['/politica-privacidade']" class="hover:text-blue-500 transition-colors">Política de Privacidade</a>
+          </li>
+          <li>
+            <a [routerLink]="['/ideia-cliente']" class="hover:text-blue-500 transition-colors">Personalizar Ideia</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Coluna 3: Suporte Técnico e Atendimento -->
+    <div class="flex flex-col space-y-2 md:items-end">
+      <div class="text-left md:text-right">
+        <h4 class="text-white text-xs font-bold uppercase tracking-wider mb-3">Suporte Técnico</h4>
+        <p class="text-xs text-slate-300 font-medium">suporte&#64;ekd-tec.com</p>
+        <p class="text-[11px] text-slate-500 mt-1">Atendimento: Seg a Sex - 8h às 18h</p>
+      </div>
+    </div>
+
+  </div>
+</footer>

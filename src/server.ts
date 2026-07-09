@@ -10,35 +10,41 @@ import { join } from 'node:path';
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
 const app = express();
-const angularApp = new AngularNodeAppEngine();
 
-/**
- * Example Express Rest API endpoints can be defined here.
- * Uncomment and define endpoints as necessary.
- *
- * Example:
- * ```ts
- * app.get('/api/{*splat}', (req, res) => {
- *   // Handle API request
- * });
- * ```
- */
+const angularApp = new AngularNodeAppEngine({
+  trustProxyHeaders: true,
+  allowedHosts: ['dev.agroprodes.com.br'],
+});
 
-/**
- * Serve static files from /browser
- */
+app.set('trust proxy', true);
+
+const baseHref = '/app/';
+
+app.use('/images', express.static(join(browserDistFolder, 'images'), { redirect: false }));
+app.use('/app/images', express.static(join(browserDistFolder, 'images'), { redirect: false }));
+
 app.use(
+  baseHref,
   express.static(browserDistFolder, {
     maxAge: '1y',
     index: false,
     redirect: false,
+    fallthrough: true
   }),
 );
 
-/**
- * Handle all other requests by rendering the Angular application.
- */
+
+// Interceptador para rotas órfãs de arquivos estáticos
 app.use((req, res, next) => {
+  if (req.path.includes('/images/')) {
+    // Tenta uma última busca direta no disco físico antes de dar 404
+    return res.sendFile(join(browserDistFolder, 'images', req.path.split('/images/')[1]), (err) => {
+      if (err) {
+        res.status(404).send('Image not found');
+      }
+    });
+  }
+
   angularApp
     .handle(req)
     .then((response) =>
@@ -47,11 +53,8 @@ app.use((req, res, next) => {
     .catch(next);
 });
 
-/**
- * Start the server if this module is the main entry point, or it is ran via PM2.
- * The server listens on the port defined by the `PORT` environment variable, or defaults to 4000.
- */
-if (isMainModule(import.meta.url) || process.env['pm_id']) {
+
+if (isMainModule(import.meta.url)) {
   const port = process.env['PORT'] || 4000;
   app.listen(port, (error) => {
     if (error) {
@@ -62,7 +65,5 @@ if (isMainModule(import.meta.url) || process.env['pm_id']) {
   });
 }
 
-/**
- * Request handler used by the Angular CLI (for dev-server and during build) or Firebase Cloud Functions.
- */
+
 export const reqHandler = createNodeRequestHandler(app);

@@ -1,0 +1,62 @@
+<!-- GARANTA QUE A PRIMEIRA LINHA ESTEJA EXATAMENTE ASSIM -->
+<header class="w-full h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 text-white">
+
+  <!-- Lado Esquerdo: Hambúrguer + Logo -->
+  <div class="flex items-center space-x-3">
+    <button (click)="layoutService.toggleDesktopMenu()" class="hidden md:flex p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors">
+      <i class="material-icons">menu</i>
+    </button>
+    <button (click)="layoutService.toggleMobileMenu()" class="flex md:hidden p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors">
+      <i class="material-icons">menu</i>
+    </button>
+
+    <!-- Logo oficial da EKD Tecnologia -->
+    <div class="flex items-center space-x-2 cursor-pointer" [routerLink]="['/home']">
+      <!-- Corrigido o caminho: o Angular procura na pasta assets por padrão -->
+      <img src="images/logo.png" alt="EKD Tecnologia Logo" class="h-10 w-auto object-contain">
+      <div class="flex flex-col leading-none hidden sm:flex">
+        <span class="font-extrabold text-sm tracking-wider text-white">EKD</span>
+        <span class="text-[9px] text-slate-400 uppercase tracking-widest font-medium">TECNOLOGIA</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lado Direito: Perfil do Usuçado Dinâmico -->
+  <div class="flex items-center space-x-3">
+    @if (!isLoggedIn) {
+      <!-- Botão Cadastrar -->
+      <a [routerLink]="['/usuarios/cadastro']"
+         class="text-xs font-semibold text-slate-300 hover:text-white px-4 py-2 rounded-xl transition-all border border-slate-700 hover:border-slate-500">
+        Cadastrar
+      </a>
+
+      <!-- Botão Entrar -->
+      <button (click)="login()"
+              class="flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 transition-all font-semibold text-sm text-white px-5 py-2 rounded-xl shadow-lg active:scale-95">
+        <i class="material-icons text-sm">login</i>
+        <span>Entrar</span>
+      </button>
+    }
+
+    @else {
+      <!-- Bloco do Usuário Autenticado -->
+      <div class="flex items-center space-x-3 cursor-pointer group" [routerLink]="['/usuarios/perfil']">
+        <div class="text-right hidden sm:block">
+          <p class="text-xs font-semibold text-slate-200 group-hover:text-blue-400 transition-colors">
+            {{ userName }}
+          </p>
+          <p class="text-[10px] text-emerald-400 font-medium">Visualizar Perfil</p>
+        </div>
+
+        <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center border border-slate-600 text-sm font-bold text-blue-400">
+          {{ userInitials }}
+        </div>
+
+        <button (click)="logout(); $event.stopPropagation()" class="text-slate-400 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-800 transition-colors">
+          <i class="material-icons text-lg">logout</i>
+        </button>
+      </div>
+    }
+  </div>
+
+</header>

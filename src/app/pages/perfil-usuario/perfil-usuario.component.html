@@ -1,0 +1,64 @@
+<div class="max-w-2xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl text-slate-200 mt-6">
+  <div class="flex items-center space-x-4 border-b border-slate-800 pb-4 mb-6">
+    <div class="w-12 h-12 rounded-full bg-blue-600/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+      <i class="material-icons text-2xl">account_circle</i>
+    </div>
+    <div>
+      <h2 class="text-lg font-bold text-white leading-none">Meu Perfil</h2>
+      <p class="text-xs text-slate-400 mt-1">Gerenciamento de informações da conta EKD Tecnologia</p>
+    </div>
+  </div>
+
+  @if (carregando()) {
+    <div class="text-center py-8 text-slate-400 text-sm">
+      <p>Carregando dados cadastrais...</p>
+    </div>
+  }
+
+  @if (erro()) {
+    <div class="bg-rose-500/10 border border-rose-500 text-rose-400 text-sm p-3 rounded-xl mb-4">
+      {{ erro() }}
+    </div>
+  }
+
+  @if (usuario(); as user) {
+    <div class="space-y-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
+          <span class="block text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-0.5">Nome Completo</span>
+          <p class="text-sm font-medium text-white bg-slate-950 p-2.5 rounded-xl border border-slate-800">{{ user.nome }}</p>
+        </div>
+        <div>
+          <span class="block text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-0.5">E-mail</span>
+          <p class="text-sm font-medium text-white bg-slate-950 p-2.5 rounded-xl border border-slate-800">{{ user.email }}</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
+          <span class="block text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-0.5">Telefone</span>
+          <p class="text-sm font-medium text-white bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+            {{ user.telefone || 'Não informado' }}
+          </p>
+        </div>
+        <div>
+          <span class="block text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-0.5">Nível de Acesso (Perfil)</span>
+          <span class="inline-flex mt-1 items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+            {{ user.perfil }}
+          </span>
+        </div>
+      </div>
+
+      <div>
+        <span class="block text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-0.5">ID Identificador Keycloak</span>
+        <p class="text-xs font-mono text-slate-400 bg-slate-950 p-2.5 rounded-xl border border-slate-800 select-all">{{ user.idKeycloak }}</p>
+      </div>
+
+      <div class="pt-4 border-t border-slate-800 flex justify-end">
+        <a [routerLink]="['/home']" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm px-6 py-2.5 rounded-xl transition-all">
+          Voltar ao Painel
+        </a>
+      </div>
+    </div>
+  }
+</div>
