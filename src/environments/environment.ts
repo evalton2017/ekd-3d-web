@@ -9,10 +9,9 @@ const keycloakConfig: KeycloakConfig = {
 export const environment = {
   versao: '1.0.0',
   production: true,
-  appApiBase: 'https://dev.agroprodes.com.br/agroprodes/api/v1',
-  urlProc: 'https://dev.agroprodes.com.br/api/v1',
+  appApiBase: 'https://dev.ekd-tec.com.br/api/v1',
   keycloakConfig,
-  postLogoutRedirectUri: 'https://dev.agroprodes.com.br/',
-  redirectUri: 'https://dev.agroprodes.com.br/home',
-  cleanUrl: 'https://dev.agroprodes.com.br/silent-check-sso.html',
+  postLogoutRedirectUri: 'https://dev.ekd-tec.com.br',
+  redirectUri: 'https://dev.ekd-tec.com.br/home',
+  cleanUrl: 'https://dev.ekd-tec.com.br/silent-check-sso.html',
 };
