@@ -13,7 +13,7 @@ const app = express();
 
 const angularApp = new AngularNodeAppEngine({
   trustProxyHeaders: true,
-  allowedHosts: ['dev.agroprodes.com.br'],
+  allowedHosts: ['dev.ekd-tec.com.br'],
 });
 
 app.set('trust proxy', true);
