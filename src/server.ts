@@ -18,10 +18,10 @@ const angularApp = new AngularNodeAppEngine({
 
 app.set('trust proxy', true);
 
-const baseHref = '/app/';
+const baseHref = '/ekd-3d-web/';
 
 app.use('/images', express.static(join(browserDistFolder, 'images'), { redirect: false }));
-app.use('/app/images', express.static(join(browserDistFolder, 'images'), { redirect: false }));
+app.use('/ekd-3d-web/images', express.static(join(browserDistFolder, 'images'), { redirect: false }));
 
 app.use(
   baseHref,
