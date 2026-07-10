@@ -145,6 +145,7 @@ export class Visualizador3dComponent {
     }
 
     else if (extensao === '3mf') {
+      console.log('IMAGEM 3MF')
       const loader = new ThreeMFLoader();
       loader.setCrossOrigin('anonymous');
 
@@ -157,13 +158,13 @@ export class Visualizador3dComponent {
 
         group.traverse((child) => {
           if (child instanceof THREE.Mesh) {
-
             // Caso A: O fatiador pintou o arquivo salvando cores diretamente por vértices/triângulos
             if (child.geometry && child.geometry.attributes['color']) {
+              console.log('Caso A')
               const corOriginal = (child.material as any).color ? (child.material as any).color : new THREE.Color(0xffffff);
 
               child.material = new THREE.MeshStandardMaterial({
-                color: corOriginal, 
+                color: corOriginal,
                 roughness: 0.4,
                 metalness: 0.1,
                 side: THREE.DoubleSide
@@ -171,6 +172,7 @@ export class Visualizador3dComponent {
             }
             // Caso B: O arquivo possui múltiplos filamentos mapeados por cor (Vaso Amarelo/Coração Vermelho)
             else if (possuiMultiplasCores && child.material) {
+              console.log('Caso B')
               if (Array.isArray(child.material)) {
                 child.material.forEach(mat => {
                   (mat as any).side = THREE.DoubleSide;
@@ -185,22 +187,28 @@ export class Visualizador3dComponent {
             }
             // Caso C: O modelo é inteiramente cinza/branco nativo sem cor. Força o azul corporativo da EKD
             else {
-              const corHex = (child.material as any).color ? (child.material as any).color.getHex() : 0xffffff;
+              console.log('Caso C')
+              const mat = child.material as any;
+              let corFinal = new THREE.Color(0xffffff);
 
-              if (corHex === 0xffffff || corHex === 0xcccccc) {
-                child.material = new THREE.MeshStandardMaterial({
-                  color: 0x3b82f6,
-                  roughness: 0.4,
-                  metalness: 0.2,
-                  side: THREE.DoubleSide
-                });
-              } else {
-                (child.material as any).side = THREE.DoubleSide;
+              console.log(mat);
+              if (mat && mat.color) {
+                corFinal = mat.color;
               }
-            }
+              if (mat.name === '___DEFAULT' || corFinal.getHex() === 0xffffff || corFinal.getHex() === 0xcccccc) {
+                corFinal = new THREE.Color(0x334155);
+              }
 
-            child.castShadow = true;
-            child.receiveShadow = true;
+              child.material = new THREE.MeshStandardMaterial({
+                color: corFinal,
+                roughness: 0.6, // Deixa um aspecto levemente fosco como o PLA da foto
+                metalness: 0.1,
+                side: THREE.DoubleSide
+              });
+
+              child.castShadow = true;
+              child.receiveShadow = true;
+            }
           }
         });
 
@@ -230,16 +238,15 @@ export class Visualizador3dComponent {
     objeto.position.y += (objeto.position.y - center.y);
     objeto.position.z += (objeto.position.z - center.z);
 
-    // Injeta a grade de fatiamento espacial rente à base inferior da peça
-    const maxDim = Math.max(size.x, size.y, size.z);
-    const gridHelper = new THREE.GridHelper(maxDim * 2, 20, 0x475569, 0x334155);
-    gridHelper.position.y = box.min.y - center.y;
-    this.scene.add(gridHelper);
-
-    // Enquadramento dinâmico inteligente da câmera para evitar cortes horizontais
+    // Retirado grade
+    //const maxDim = Math.max(size.x, size.y, size.z);
+    //const gridHelper = new THREE.GridHelper(maxDim * 2, 20, 0x475569, 0x334155);
+    //gridHelper.position.y = box.min.y - center.y;
+    //this.scene.add(gridHelper);
+    const maxDim = Math.max(size.x, size.y, size.z); // Mantido apenas para o cálculo do fov abaixo
     const fov = this.camera.fov * (Math.PI / 180);
     let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2)) * 1.6;
-
+    
     this.camera.position.set(maxDim, maxDim * 0.9, cameraZ);
     this.camera.lookAt(0, 0, 0);
 
