@@ -9,7 +9,7 @@ const keycloakConfig: KeycloakConfig = {
 export const environment = {
   versao: '1.0.0',
   production: false,
-  appApiBase: 'http://localhost:9091/ekd-3d/api/v1',
+  appApiBase: 'http://localhost:9091/ekd-3d-api/v1',
   postLogoutRedirectUri: 'http://localhost:4200/app/',
   keycloakConfig,
   redirectUri:'http://localhost:4200/home/',

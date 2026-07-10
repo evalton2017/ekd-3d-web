@@ -160,10 +160,12 @@ export class Visualizador3dComponent {
 
             // Caso A: O fatiador pintou o arquivo salvando cores diretamente por vértices/triângulos
             if (child.geometry && child.geometry.attributes['color']) {
+              const corOriginal = (child.material as any).color ? (child.material as any).color : new THREE.Color(0xffffff);
+
               child.material = new THREE.MeshStandardMaterial({
-                vertexColors: true,
+                color: corOriginal, 
                 roughness: 0.4,
-                metalness: 0.0,
+                metalness: 0.1,
                 side: THREE.DoubleSide
               });
             }
