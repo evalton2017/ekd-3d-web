@@ -18,5 +18,5 @@ ENV NODE_ENV=production
 # O Angular SSR gera arquivos prontos. Não precisamos de node_modules aqui.
 COPY --from=builder /app/dist/ekd-3d-web ./dist/ekd-3d-web
 
-EXPOSE 4000
+EXPOSE 4001
 CMD ["node", "dist/ekd-3d-web/server/server.mjs"]
