@@ -2,12 +2,13 @@ import { Component, inject, OnInit, signal, ChangeDetectorRef } from '@angular/c
 import { CommonModule } from '@angular/common';
 import {Visualizador3dComponent} from '../../components/visualizador/visualizador.component';
 import {ProdutoResponseDTO, ProdutoService} from '../produtos/service/produto.service';
+import {RouterLink} from '@angular/router';
 
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, Visualizador3dComponent],
+  imports: [CommonModule, Visualizador3dComponent, RouterLink],
   templateUrl: './dashboard.html'
 })
 export class DashboardComponent implements OnInit {

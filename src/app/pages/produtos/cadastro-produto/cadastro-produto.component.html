@@ -55,8 +55,17 @@
         <input type="text" [(ngModel)]="form.descricao" name="descricao" required placeholder="Ex: Modelo impresso em filamento PETG de alta fidelidade..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:border-blue-500 focus:outline-none transition-colors">
       </div>
       <div>
-        <label class="block text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1.5">Preço Base (R$)</label>
-        <input type="number" [(ngModel)]="form.precoBase" name="precoBase" required min="0.01" step="0.01" placeholder="0,00" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:border-blue-500 focus:outline-none transition-colors">
+        <label class="block text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1.5">
+          Preço Base (R$)
+        </label>
+        <!-- Trocado o type para text para permitir caracteres especiais da máscara -->
+        <input type="text"
+               [value]="precoVisual()"
+               (input)="onPrecoInput($event)"
+               name="precoBaseVisual"
+               required
+               placeholder="R$ 0,00"
+               class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:border-blue-500 focus:outline-none transition-colors font-mono">
       </div>
     </div>
 

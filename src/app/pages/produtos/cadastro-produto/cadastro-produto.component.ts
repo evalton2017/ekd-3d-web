@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import {ProdutoService} from '../service/produto.service';
 import {CategoriaResponseDTO, CategoriaService} from '../../categorias/service/categoria.service';
+import {converterRealParaNumero, formatarParaReal} from '../../../utils/moeda-utils';
 
 
 @Component({
@@ -24,6 +25,8 @@ export class CadastroProdutoComponent implements OnInit {
 
   imagemSelecionada: File | null = null;
   arquivo3dSelecionado: File | null = null;
+  precoVisual = signal<string>('R$ 0,00');
+
 
   nomeImagem = signal<string>('Nenhum arquivo de imagem selecionado');
   nomeArquivo3d = signal<string>('Nenhum arquivo 3D (.stl / .3mf) selecionado');
@@ -34,12 +37,25 @@ export class CadastroProdutoComponent implements OnInit {
   form = {
     nome: '',
     descricao: '',
-    precoBase: null,
+    precoBase: 0,
     categoriaId: null
   };
 
   ngOnInit(): void {
     this.carregarCategoriasDoBanco();
+  }
+
+  onPrecoInput(event: any): void {
+    const valorDigitado = event.target.value;
+
+    // 1. Aplica a máscara visual em tempo real no input
+    const formatado = formatarParaReal(valorDigitado);
+    this.precoVisual.set(formatado);
+
+    // 2. Extrai o número real puro e salva no objeto do formulário
+    this.form.precoBase = converterRealParaNumero(formatado);
+
+    this.cdr.markForCheck(); // Zoneless safe
   }
 
   carregarCategoriasDoBanco(): void {

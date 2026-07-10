@@ -1,9 +1,8 @@
-import { Component, inject, ChangeDetectorRef, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, ChangeDetectorRef, OnInit, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { LayoutService } from '../layout.service';
 import Keycloak from 'keycloak-js';
-
 
 @Component({
   selector: 'app-header',
@@ -12,55 +11,84 @@ import Keycloak from 'keycloak-js';
   templateUrl: './header.html',
   styleUrl: './header.scss'
 })
-export class HeaderComponent implements OnInit {
+export class HeaderComponent implements OnInit, OnDestroy {
   isLoggedIn = false;
   userName = '';
   userInitials = '';
 
+  // Flag para sabermos se o Angular já terminou a renderização do servidor
+  isBrowser = false;
+
   public layoutService = inject(LayoutService);
   private keycloak = inject(Keycloak);
   private cdr = inject(ChangeDetectorRef);
+  private platformId = inject(PLATFORM_ID); // Injeta o identificador de plataforma
+
+  private monitorTimer: any;
 
   ngOnInit(): void {
-    this.escutarAutenticacaoKeycloak();
+    if (isPlatformBrowser(this.platformId)) {
+      this.isBrowser = true;
+      this.escutarAutenticacaoKeycloak();
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.monitorTimer) {
+      clearInterval(this.monitorTimer);
+    }
   }
 
   escutarAutenticacaoKeycloak(): void {
-    // Como a inicialização do Keycloak roda assíncrona, criamos um observador de segurança
-    // que só atualiza quando o token de fato estiver pronto e carregado na memória do cliente
-    const checarStatusReal = () => {
-      // Verifica se o objeto e as propriedades do token já foram populadas pelo Keycloak
+    const processarDadosDeAutenticacao = () => {
+      // Se o Keycloak já resolveu a autenticação no APP_INITIALIZER, captura na hora
       if (this.keycloak.authenticated && this.keycloak.tokenParsed) {
         this.isLoggedIn = true;
         const token = this.keycloak.tokenParsed as any;
         this.userName = token.name || token.preferred_username || 'Usuário';
         this.gerarIniciais();
-        console.log('[Header] Interface atualizada para LOGADO: ', this.userName);
-        this.cdr.markForCheck(); // Redesenha a tela com o nome
-      } else if (!this.keycloak.authenticated && this.keycloak.tokenParsed === undefined) {
-        // Se realmente não houver login após o boot do Keycloak, mantém deslogado
-        this.isLoggedIn = false;
-        this.userName = '';
-        this.userInitials = '';
-        this.cdr.markForCheck();
+
+        // Executa a filtragem caso estejamos na sidebar
+        if (typeof (this as any).filtrarMenus === 'function') {
+          (this as any).filtrarMenus();
+        }
+
+        console.log('[Auth] Componente resgatou login pré-existente:', this.userName);
+
+        // FORÇA O DESCONGELAMENTO: Avisa o Zoneless para destruir os Skeletons e pintar o usuário
+        this.cdr.detectChanges();
+        return true;
       }
+      return false;
     };
 
-    // Executa uma vez no início
-    checarStatusReal();
+    // 1. Vincula os ouvintes de eventos para navegações ou logins futuros
+    this.keycloak.onAuthSuccess = () => processarDadosDeAutenticacao();
+    this.keycloak.onAuthRefreshSuccess = () => processarDadosDeAutenticacao();
 
-    // Cria um Polling longo e seguro (a cada 200ms) durante os primeiros 2 segundos de boot da página
-    // Isso garante que assim que o app.config inicializar o SSO, o Header acompanha o estado na hora!
+    // 2. TENTA PROCESSAR IMEDIATAMENTE (Como o APP_INITIALIZER já rodou, isso vai bater True na hora)
+    const jaEstavaLogado = processarDadosDeAutenticacao();
+    if (jaEstavaLogado) return; // Encerra aqui se resolveu direto
+
+    // 3. Contingência de segurança rápida (apenas se houver delay extremo no token)
     let ciclo = 0;
-    const monitor = setInterval(() => {
+    this.monitorTimer = setInterval(() => {
       ciclo++;
-      checarStatusReal();
+      const logou = processarDadosDeAutenticacao();
 
-      // Se estabilizou logado ou se passou de 2 segundos, desliga o monitor para poupar memória
-      if (this.isLoggedIn || ciclo > 10) {
-        clearInterval(monitor);
+      if (logou || ciclo > 10) {
+        clearInterval(this.monitorTimer);
+
+        // Se deu timeout e realmente não está logado, atualiza para tirar o esqueleto e mostrar o botão "Entrar"
+        if (!logou) {
+          this.isLoggedIn = false;
+          if (typeof (this as any).filtrarMenus === 'function') {
+            (this as any).filtrarMenus(); // Limpa e mostra apenas menus públicos na sidebar
+          }
+          this.cdr.detectChanges();
+        }
       }
-    }, 200);
+    }, 150);
   }
 
   gerarIniciais(): void {
@@ -76,10 +104,16 @@ export class HeaderComponent implements OnInit {
   }
 
   login(): void {
-    this.keycloak.login();
+    if (!isPlatformBrowser(this.platformId)) return;
+    this.keycloak.login({
+      redirectUri: window.location.origin + '/ekd-3d-web/home'
+    });
   }
 
   logout(): void {
-    this.keycloak.logout({ redirectUri: window.location.origin });
+    if (!isPlatformBrowser(this.platformId)) return;
+    this.keycloak.logout({
+      redirectUri: window.location.origin + '/ekd-3d-web/'
+    });
   }
 }

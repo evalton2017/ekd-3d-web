@@ -63,4 +63,19 @@ export class ProdutoService {
     return this.http.post<string>(this.apiUrl, formData, { responseType: 'text' as 'json' });
   }
 
+  buscarPorId(id: number): Observable<ProdutoResponseDTO> {
+    return this.http.get<ProdutoResponseDTO>(`${this.apiUrl}/${id}`);
+  }
+
+  editarProduto(id: number, dados: any, imagem: File | null, arquivo3d: File | null): Observable<string> {
+    const formData = new FormData();
+    const dadosBlob = new Blob([JSON.stringify(dados)], { type: 'application/json' });
+    formData.append('dados', dadosBlob);
+
+    if (imagem) formData.append('imagem', imagem);
+    if (arquivo3d) formData.append('arquivo3d', arquivo3d);
+
+    return this.http.put<string>(`${this.apiUrl}/${id}`, formData, { responseType: 'text' as 'json' });
+  }
+
 }

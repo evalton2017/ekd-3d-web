@@ -43,13 +43,17 @@ export const authGuard: CanActivateFn = async (
 
   // Captura as permissões do Keycloak
   const realmRoles = keycloak.realmAccess?.roles || [];
+  console.log(realmRoles);
+
   const resourceRoles = keycloak.resourceAccess
     ? Object.values(keycloak.resourceAccess).flatMap(access => access.roles || [])
     : [];
-  
+
   const hasRequiredRole = requiredRoles.some((role) =>
     realmRoles.includes(role) || resourceRoles.includes(role)
   );
+
+  console.log(hasRequiredRole);
 
   // Se o usuário não tiver nenhuma das roles necessárias, barra o acesso
   if (!hasRequiredRole) {

@@ -116,7 +116,11 @@
             {{ selecionado.descricao }}
           </p>
           <button class="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-blue-500/20 active:scale-95 flex-shrink-0">
-            Encomendar Objeto
+            <a [routerLink]="['/solicitar-pedido']"
+               [queryParams]="{ produtoId: selecionado.id }"
+               class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all active:scale-95 flex items-center justify-center decoration-none">
+              Encomendar Objeto
+            </a>
           </button>
         </div>
 

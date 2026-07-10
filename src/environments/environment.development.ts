@@ -12,6 +12,6 @@ export const environment = {
   appApiBase: 'http://localhost:9091/ekd-3d-api/v1',
   postLogoutRedirectUri: 'http://localhost:4200/app/',
   keycloakConfig,
-  redirectUri:'http://localhost:4200/home/',
-  cleanUrl: 'http://localhost:4200/silent-check-sso.html',
+  redirectUri:'http://localhost:4200/ekd-3d-web/home/',
+  cleanUrl: 'http://localhost:4200/ekd-3d-web/silent-check-sso.html',
 };

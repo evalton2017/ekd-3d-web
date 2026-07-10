@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Silent Check SSO</title>
+</head>
+<body>
+<script>
+  // Versão moderna e robusta: Envia a URL completa ou o hash contendo os tokens do Keycloak
+  // Isso impede que o construtor do keycloak.js receba uma string vazia/inválida
+  const message = window.location.hash ? window.location.href : window.location.search;
+  window.parent.postMessage(message, window.location.origin);
+</script>
+</body>
+</html>

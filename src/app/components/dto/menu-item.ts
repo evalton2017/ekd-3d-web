@@ -12,7 +12,7 @@ export const MENU_ITEMS: ItemMenu[] = [
   {
     route: '/encomenda-cliente',
     label: 'Encomendas',
-    icon: 'assignment_ind', // Ícone alterado para diferenciar do administrador
+    icon: 'assignment_ind',
     roles: ['CLIENTE']
   },
   // PRIVADO: Aparece apenas para ADMINISTRADOR autenticado
@@ -23,7 +23,7 @@ export const MENU_ITEMS: ItemMenu[] = [
     roles: ['ADMINISTRADOR']
   },
   {
-    route: '/encomendas',
+    route: '/admin/encomendas',
     label: 'Painel Encomendas',
     icon: 'admin_panel_settings',
     roles: ['ADMINISTRADOR']
@@ -36,7 +36,7 @@ export const MENU_ITEMS: ItemMenu[] = [
   },
   // ROTAS PUBLICAS
   {
-    route: '/ideia-cliente',
+    route: '/solicitar-pedido',
     label: 'Personalize sua ideia',
     icon: 'psychology',
     roles: ['CLIENTE', 'ADMINISTRADOR']

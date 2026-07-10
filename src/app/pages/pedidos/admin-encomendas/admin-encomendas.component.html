@@ -1,0 +1,189 @@
+<div class="space-y-6 animate-fade-in text-slate-200">
+
+  <!-- Topo Administrativo -->
+  <div class="border-b border-slate-800 pb-4">
+    <h1 class="text-xl font-bold tracking-tight text-white md:text-2xl">Esteira de Produção de Pedidos</h1>
+    <p class="text-xs text-slate-400 mt-1">Gerenciamento macro de solicitações de clientes, faturamento, auditoria e despacho de peças.</p>
+  </div>
+
+  @if (mensagemSucesso()) {
+    <div class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs p-3 rounded-xl mb-4 transition-all">
+      {{ mensagemSucesso() }}
+    </div>
+  }
+
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-end gap-4 shadow-md mb-6">
+    <div class="flex-1 min-w-[180px]">
+      <label class="block text-[9px] uppercase font-bold tracking-wider text-slate-400 mb-1.5">Data Inicial</label>
+      <input type="date" [(ngModel)]="filtroDataInicio" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white focus:outline-none focus:border-blue-500 font-mono">
+    </div>
+    <div class="flex-1 min-w-[180px]">
+      <label class="block text-[9px] uppercase font-bold tracking-wider text-slate-400 mb-1.5">Data Final</label>
+      <input type="date" [(ngModel)]="filtroDataFim" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white focus:outline-none focus:border-blue-500 font-mono">
+    </div>
+    <div class="flex items-center space-x-2">
+      <button (click)="aplicarFiltros()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all active:scale-95 h-9">
+        Filtrar
+      </button>
+      <button (click)="limparFiltros()" class="bg-slate-950 border border-slate-800 hover:bg-slate-800 text-slate-400 text-xs font-bold px-3 py-2 rounded-xl transition-all active:scale-95 h-9">
+        Limpar
+      </button>
+    </div>
+  </div>
+
+  @if (carregando()) {
+    <div class="text-center py-20 text-slate-400 text-sm">Consultando fila global de produção via JPA...</div>
+  } @else {
+
+    <div class="space-y-4">
+      @for (pedido of pedidos(); track pedido.id) {
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+
+          <!-- Cabeçalho do Card (Mestre) -->
+          <div (click)="alternarExpansao(pedido.id)"
+               class="p-4 flex flex-wrap items-center justify-between gap-4 cursor-pointer hover:bg-slate-800/20 select-none">
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8">
+              <div>
+                <span class="text-[9px] text-slate-500 uppercase font-bold tracking-wider">Código</span>
+                <p class="text-sm font-bold text-white font-mono">#{{ pedido.id }}</p>
+              </div>
+              <div>
+                <span class="text-[9px] text-slate-500 uppercase font-bold tracking-wider">Cliente</span>
+                <p class="text-xs font-bold text-slate-300 truncate max-w-[150px]">{{ pedido.clienteNome }}</p>
+              </div>
+              <div class="hidden md:block">
+                <span class="text-[9px] text-slate-500 uppercase font-bold tracking-wider">Data</span>
+                <p class="text-xs font-semibold text-slate-400">{{ pedido.dataSolicitacao | date:'dd/MM HH:mm' }}</p>
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+              <div class="text-right">
+                <span class="text-[9px] text-slate-500 uppercase font-bold tracking-wider block">Faturamento</span>
+                <span class="text-sm font-extrabold text-blue-400">{{ pedido.valorTotalPedido | currency:'BRL' }}</span>
+              </div>
+
+              <span [ngClass]="obterClasseStatus(pedido.status)" class="px-3 py-1 text-[9px] font-bold uppercase rounded-full border tracking-wide">
+                {{ pedido.status }}
+              </span>
+
+              <svg xmlns="http://w3.org" class="w-4 h-4 text-slate-500 transition-transform duration-200" [class.rotate-180]="pedidoExpandidoId() === pedido.id" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Gaveta Oculta de Gerenciamento -->
+          @if (pedidoExpandidoId() === pedido.id) {
+            <div class="border-t border-slate-800 bg-slate-950/40 p-5 grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
+
+              <!-- Coluna 1 e 2: Lista de Peças + Comutador de Status -->
+              <div class="lg:col-span-2 space-y-4">
+
+                <!-- COMUTADOR DE STATUS EXCLUSIVO DO ADMIN -->
+                <div class="bg-slate-950/40 border border-slate-800 p-4 rounded-xl flex items-center justify-between gap-4">
+                  <div class="text-left">
+                    <h5 class="text-xs font-bold text-white uppercase tracking-wider">Avançar Peça na Esteira</h5>
+                    <p class="text-[10px] text-slate-500 mt-0.5">A mudança disparará um e-mail em HTML automático notificando o cliente.</p>
+                  </div>
+
+                  <select [ngModel]="pedido.status"
+                          (ngModelChange)="onStatusChange(pedido.id, $event)"
+                          class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-blue-500 cursor-pointer">
+                    @for (st of listaStatus; track st) {
+                      <option [value]="st">{{ st }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="space-y-2">
+                  <h4 class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Arquivos e Customizações Solicitadas</h4>
+                  @for (item of pedido.itens; track item.id) {
+                    <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-3 flex items-center justify-between text-xs gap-3">
+                      <div class="min-w-0 text-left">
+                        <p class="font-bold text-white truncate">{{ item.nomeModelo }}</p>
+                        <p class="text-[10px] text-slate-400 mt-1 bg-slate-900 p-2 rounded border border-slate-800 font-mono leading-relaxed">{{ item.descricaoCustomizacao || 'Nenhuma nota de customização adicionada.' }}</p>
+                      </div>
+                      <div class="text-right flex-shrink-0 flex flex-col justify-center">
+                        <span class="text-[10px] text-slate-500">Qtd: {{ item.quantidade }}</span>
+                        <!-- Botão de Download se for arquivo customizado enviado pelo cliente -->
+                        @if (item.urlArquivo3d && item.urlArquivo3d.startsWith('http')) {
+                          <a [href]="item.urlArquivo3d" target="_blank" class="text-[10px] text-blue-400 font-bold hover:underline mt-1.5 block">Baixar do S3</a>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <div class="bg-slate-950/30 border border-slate-800 rounded-xl p-4 flex flex-col min-h-[220px]">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 text-left">
+                  Rastreabilidade / Histórico
+                </h4>
+
+                <!-- Container da Linha Vertical -->
+                <div class="relative border-l border-slate-800 pl-4 space-y-4 flex-1 text-left ml-2">
+
+                  <!-- Varre a lista de históricos gravada de forma retroativa pelo banco Java -->
+                  @for (hist of pedido.historicos; track hist.id) {
+                    <div class="relative animate-fade-in pb-1">
+
+                      <!-- Ponto Marcador Visual na Linha Vertical -->
+                      <span class="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-blue-500 border-2 border-slate-950 shadow-lg shadow-blue-500/20"></span>
+
+                      <!-- Metadados da transição -->
+                      <span class="text-[9px] text-slate-500 font-bold block uppercase tracking-wide">
+                        {{ hist.dataAlteracao | date:'dd/MM HH:mm' }}
+                      </span>
+
+                      <p class="text-xs font-extrabold text-white mt-0.5 uppercase tracking-wide">
+                        {{ hist.statusNovo }}
+                      </p>
+
+                      <span class="text-[9px] text-slate-400 block mt-0.5 font-medium">
+                        Operador: <strong class="text-slate-300">{{ hist.responsavelNome }}</strong>
+                      </span>
+
+                    </div>
+                  } @empty {
+                    <!-- Fallback preventivo caso a lista venha vazia por falta de registros antigos -->
+                    <div class="flex flex-col items-center justify-center h-full text-center py-8 text-slate-600">
+                      <p class="text-[11px] font-medium">Nenhum marco registrado na linha do tempo deste pedido.</p>
+                    </div>
+                  }
+
+                </div>
+              </div>
+
+            </div>
+          }
+        </div>
+      } @empty {
+        <div class="text-center py-16 bg-slate-900/40 border border-slate-800 rounded-2xl text-slate-500 text-sm">
+          Nenhum pedido aguardando processamento na esteira logística.
+        </div>
+      }
+    </div>
+  }
+
+  @if (totalDePaginas() > 1) {
+    <div class="flex items-center justify-between pt-6 border-t border-slate-800 text-slate-400 mt-6 w-full">
+      <span class="text-xs">
+        Página <strong class="text-white">{{ paginaAtual() + 1 }}</strong> de <strong class="text-white">{{ totalDePaginas() }}</strong>
+      </span>
+
+      <div class="inline-flex space-x-2">
+        <button (click)="mudarPagina(paginaAtual() - 1)" [disabled]="paginaAtual() === 0" class="px-4 py-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-white rounded-xl transition-all disabled:opacity-30 text-xs font-bold inline-flex items-center space-x-1 active:scale-95">
+          <svg xmlns="http://w3.org" class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+          <span>Anterior</span>
+        </button>
+
+        <button (click)="mudarPagina(paginaAtual() + 1)" [disabled]="paginaAtual() === totalDePaginas() - 1" class="px-4 py-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-white rounded-xl transition-all disabled:opacity-30 text-xs font-bold inline-flex items-center space-x-1 active:scale-95">
+          <span>Próxima</span>
+          <svg xmlns="http://w3.org" class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+        </button>
+      </div>
+    </div>
+  }
+</div>

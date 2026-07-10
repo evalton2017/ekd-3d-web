@@ -6,17 +6,36 @@
   </div>
 
   <nav class="flex-1 px-3 py-4 space-y-2">
-    @for (item of menuFiltrado; track item.label) {
-      <a [routerLink]="item.route"
-         routerLinkActive="bg-blue-600 text-white shadow-lg"
-         [title]="item.label"
-         class="flex items-center p-3 rounded-xl text-sm font-medium transition-all hover:bg-slate-800 hover:text-white group whitespace-nowrap">
-        <i class="material-icons text-slate-400 group-hover:text-white transition-colors"
-           [class.mr-3]="layoutService.isDesktopExpanded()">{{ item.icon }}</i>
-        <span class="transition-opacity duration-200" [class.opacity-0]="!layoutService.isDesktopExpanded()">
-          {{ item.label }}
-        </span>
-      </a>
+    @if (isBrowser) {
+      <!-- Navegador ativo: renderiza os menus filtrados reais -->
+      @for (item of menuFiltrado; track item.label) {
+        <a [routerLink]="item.route"
+           routerLinkActive="bg-blue-600 text-white shadow-lg"
+           [title]="item.label"
+           class="flex items-center p-3 rounded-xl text-sm font-medium transition-all hover:bg-slate-800 hover:text-white group whitespace-nowrap">
+          <i class="material-icons text-slate-400 group-hover:text-white transition-colors"
+             [class.mr-3]="layoutService.isDesktopExpanded()">{{ item.icon }}</i>
+          <span class="transition-opacity duration-200" [class.opacity-0]="!layoutService.isDesktopExpanded()">
+            {{ item.label }}
+          </span>
+        </a>
+      }
+    } @else {
+      <!-- Servidor (SSR) ou carregando Token: exibe placeholders animados para não quebrar o layout -->
+      <div class="space-y-3 px-1.5 pt-1">
+        <div class="flex items-center p-3 rounded-xl bg-slate-800/40 animate-pulse">
+          <div class="w-5 h-5 bg-slate-700/60 rounded-full"></div>
+          <div class="h-4 bg-slate-700/60 rounded ml-3 transition-all w-28" [class.hidden]="!layoutService.isDesktopExpanded()"></div>
+        </div>
+        <div class="flex items-center p-3 rounded-xl bg-slate-800/40 animate-pulse">
+          <div class="w-5 h-5 bg-slate-700/60 rounded-full"></div>
+          <div class="h-4 bg-slate-700/60 rounded ml-3 transition-all w-32" [class.hidden]="!layoutService.isDesktopExpanded()"></div>
+        </div>
+        <div class="flex items-center p-3 rounded-xl bg-slate-800/40 animate-pulse">
+          <div class="w-5 h-5 bg-slate-700/60 rounded-full"></div>
+          <div class="h-4 bg-slate-700/60 rounded ml-3 transition-all w-24" [class.hidden]="!layoutService.isDesktopExpanded()"></div>
+        </div>
+      </div>
     }
   </nav>
 </aside>

@@ -12,6 +12,6 @@ export const environment = {
   appApiBase: 'https://dev.ekd-tec.com.br/ekd-3d-api/v1',
   keycloakConfig,
   postLogoutRedirectUri: 'https://dev.ekd-tec.com.br',
-  redirectUri: 'https://dev.ekd-tec.com.br/home',
-  cleanUrl: 'https://dev.ekd-tec.com.br/silent-check-sso.html',
+  redirectUri: 'https://dev.ekd-tec.com.br/ekd-3d-web',
+  cleanUrl: 'https://dev.ekd-tec.com.br/ekd-3d-web/silent-check-sso.html',
 };

@@ -1,19 +1,25 @@
-import { ApplicationConfig, provideZonelessChangeDetection, provideAppInitializer, inject,  importProvidersFrom, LOCALE_ID } from '@angular/core';
-import { provideRouter } from '@angular/router';
-import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
-import { provideHttpClient, withInterceptors, withFetch } from '@angular/common/http';
-import { routes } from './app.routes';
-import { loadingInterceptor } from './interceptor/loading-interceptor';
-import { environment } from '../environments/environment';
-import { registerLocaleData } from '@angular/common';
+import {
+  ApplicationConfig,
+  inject,
+  LOCALE_ID,
+  provideAppInitializer,
+  provideZonelessChangeDetection
+} from '@angular/core';
+import {provideRouter} from '@angular/router';
+import {provideClientHydration, withEventReplay} from '@angular/platform-browser';
+import {provideHttpClient, withFetch, withInterceptors} from '@angular/common/http';
+import {routes} from './app.routes';
+import {loadingInterceptor} from './interceptor/loading-interceptor';
+import {environment} from '../environments/environment';
+import {registerLocaleData} from '@angular/common';
 import localePt from '@angular/common/locales/pt';
 
 import Keycloak from 'keycloak-js';
 import {
-  includeBearerTokenInterceptor,
-  INCLUDE_BEARER_TOKEN_INTERCEPTOR_CONFIG,
   createInterceptorCondition,
-  IncludeBearerTokenCondition
+  INCLUDE_BEARER_TOKEN_INTERCEPTOR_CONFIG,
+  IncludeBearerTokenCondition,
+  includeBearerTokenInterceptor
 } from 'keycloak-angular';
 
 registerLocaleData(localePt);
@@ -73,14 +79,23 @@ export const createWithAppConfig = (isBrowser: boolean): ApplicationConfig => {
       provideAppInitializer(() => {
         if (!isBrowser) return Promise.resolve();
 
-        // 1. Injetar dependências de forma segura
         const keycloak = inject(Keycloak);
 
-        // 2. CORREÇÃO: Inicializa o Keycloak em segundo plano e resolve a Promise principal imediatamente
-        // Isso permite que o Angular conclua a hidratação e ative os botões na tela sem travar
-        keycloak.init({
+        // Tratamento correto do link do silent-check-sso
+        let urlLimpa = environment.cleanUrl || '';
+        if (urlLimpa.includes('/ekd-3d-web/')) {
+          urlLimpa = '/ekd-3d-web/silent-check-sso.html';
+        } else {
+          urlLimpa = '/silent-check-sso.html';
+        }
+
+        const urlAbsolutaSso = window.location.origin + urlLimpa;
+        console.log('[Keycloak Boot] Iniciando SSO silencioso com:', urlAbsolutaSso);
+
+        // RETORNA DIRETAMENTE A PROMISE: O Keycloak vai ler o environment da Factory e iniciar
+        return keycloak.init({
           onLoad: 'check-sso',
-          silentCheckSsoRedirectUri: environment.cleanUrl,
+          silentCheckSsoRedirectUri: urlAbsolutaSso,
           checkLoginIframe: false,
           messageReceiveTimeout: 5000,
           enableLogging: true,
@@ -88,16 +103,14 @@ export const createWithAppConfig = (isBrowser: boolean): ApplicationConfig => {
           pkceMethod: 'S256'
         })
           .then((authenticated) => {
-            console.log(`[Cliente] Keycloak inicializado. Autenticado: ${authenticated}`);
+            console.log(`[Cliente] Keycloak inicializado com sucesso. Autenticado: ${authenticated}`);
+            return true;
           })
           .catch(error => {
-            console.error('[Cliente] Falha na inicialização do Keycloak:', error);
+            console.error('[Cliente] Falha crítica na inicialização do Keycloak:', error);
+            return false;
           });
-
-        // Retorna sucesso imediatamente para o Angular liberar os bindings de clique do navegador
-        return Promise.resolve();
       })
-
     ]
   };
 };
