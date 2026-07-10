@@ -1,1 +1,111 @@
-<p>produtos.component works!</p>
+<div class="space-y-6 animate-fade-in">
+
+  <!-- Topo Informativo -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-800 pb-4 gap-4">
+    <div>
+      <h1 class="text-xl font-bold text-white md:text-2xl">Gerenciador do Catálogo</h1>
+      <p class="text-xs text-slate-400 mt-1">Painel restrito para controle de inventário, inclusão de malhas e exclusão definitiva.</p>
+    </div>
+
+    <a [routerLink]="['/admin/produtos/novo']"
+       class="inline-flex items-center justify-center space-x-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-blue-500/10 active:scale-95 flex-shrink-0">
+      <svg xmlns="http://w3.org" class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+      <span>Novo Modelo 3D</span>
+    </a>
+  </div>
+
+  @if (mensagemSucesso()) {
+    <div class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs p-3 rounded-xl mb-4">
+      {{ mensagemSucesso() }}
+    </div>
+  }
+
+  @if (carregando()) {
+    <div class="text-center py-12 text-slate-400 text-sm">Consultando inventário paginado via API Java...</div>
+  } @else {
+
+    <!-- Tabela Principal -->
+    <div class="w-full overflow-x-auto bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+        <tr class="border-b border-slate-800 bg-slate-950 text-slate-400 font-bold uppercase tracking-wider">
+          <th class="p-4 w-20">Preview</th>
+          <th class="p-4">Nome do Modelo</th>
+          <th class="p-4 hidden md:table-cell">Categoria</th>
+          <th class="p-4">Preço Base</th>
+          <th class="p-4 text-center w-24">Ações</th>
+        </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800/50 text-slate-300">
+          @for (prod of produtos(); track prod.id) {
+            <tr class="hover:bg-slate-800/30 transition-colors">
+              <td class="p-4">
+                <div class="w-12 h-12 bg-slate-950 rounded-xl border border-slate-800 p-1 flex items-center justify-center overflow-hidden">
+                  <img [src]="prod.urlImagemPreview" [alt]="prod.nome" class="max-h-full max-w-full object-contain">
+                </div>
+              </td>
+              <td class="p-4 font-medium text-white">
+                <div class="flex flex-col">
+                  <span>{{ prod.nome }}</span>
+                  <span class="text-[10px] text-slate-500 line-clamp-1 font-normal mt-0.5">{{ prod.descricao }}</span>
+                </div>
+              </td>
+              <td class="p-4 hidden md:table-cell">
+                <span class="px-2 py-0.5 rounded-md bg-slate-950 border border-slate-800 text-[10px] uppercase font-semibold text-slate-400">
+                  {{ prod.categoriaNome }}
+                </span>
+              </td>
+              <td class="p-4 font-bold text-blue-400">
+                {{ prod.precoBase | currency:'BRL':'symbol':'1.2-2' }}
+              </td>
+              <td class="p-4 text-center">
+                <button (click)="deletarProduto(prod.id, prod.nome)"
+                        class="p-2 bg-slate-950 border border-slate-800 text-slate-400 hover:text-rose-400 hover:border-rose-500/30 rounded-xl transition-all active:scale-95">
+                  <svg xmlns="http://w3.org" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="p-8 text-center text-slate-500">Nenhum produto localizado para os critérios informados.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginação da Tabela -->
+    @if (totalDePaginas() > 1) {
+      <div class="flex items-center justify-between pt-4 text-slate-400">
+        <span class="text-xs">
+          Página <strong class="text-white">{{ paginaAtual() + 1 }}</strong> de <strong class="text-white">{{ totalDePaginas() }}</strong>
+        </span>
+
+        <div class="inline-flex space-x-2">
+          <button (click)="mudarPagina(paginaAtual() - 1)"
+                  [disabled]="paginaAtual() === 0"
+                  class="px-4 py-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-white rounded-xl transition-all disabled:opacity-30 text-xs font-bold inline-flex items-center space-x-1 active:scale-95">
+            <svg xmlns="http://w3.org" class="w-4 h-4 text-white flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            <span>Anterior</span>
+          </button>
+
+          <button (click)="mudarPagina(paginaAtual() + 1)"
+                  [disabled]="paginaAtual() === totalDePaginas() - 1"
+                  class="px-4 py-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-white rounded-xl transition-all disabled:opacity-30 text-xs font-bold inline-flex items-center space-x-1 active:scale-95">
+            <span>Próxima</span>
+            <svg xmlns="http://w3.org" class="w-4 h-4 text-white flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    }
+
+  }
+</div>

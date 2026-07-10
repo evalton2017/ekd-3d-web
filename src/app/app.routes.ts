@@ -14,7 +14,15 @@ export const routes: Routes = [
   },
   {
     path: 'produtos',
-    loadComponent: () => import('./pages/produtos/produtos.component').then(m => m.ProdutosComponent)
+    loadComponent: () => import('./pages/produtos/produtos.component').then(m => m.ProdutosComponent),
+    canActivate: [authGuard],
+    data: { roles: ['ADMINISTRADOR'] }
+  },
+  {
+    path: 'admin/produtos/novo',
+    canActivate: [authGuard],
+    data: { roles: ['ADMINISTRADOR'] },
+    loadComponent: () => import('./pages/produtos/cadastro-produto/cadastro-produto.component').then(m => m.CadastroProdutoComponent),
   },
   {
     path: 'encomenda-cliente',
@@ -29,7 +37,6 @@ export const routes: Routes = [
     path: 'usuarios/perfil',
     loadComponent: () => import('./pages/perfil-usuario/perfil-usuario.component').then(m => m.PerfilUsuarioComponent)
   },
-
   {
     path: '**',
     redirectTo: 'home'

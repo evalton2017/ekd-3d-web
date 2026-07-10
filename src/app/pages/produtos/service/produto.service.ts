@@ -41,6 +41,26 @@ export class ProdutoService {
     if (nome) params = params.set('nome', nome);
     if (categoriaId) params = params.set('categoriaId', categoriaId.toString());
 
-    return this.http.get<SpringPageResponse<ProdutoResponseDTO>>(this.apiUrl, { params });
+    return this.http.get<SpringPageResponse<ProdutoResponseDTO>>(`${this.apiUrl}/consulta`, { params });
   }
+
+  deletarProduto(id: number){
+    return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+
+  cadastrarNovoProduto(dados: any, imagem: File, arquivo3d: File): Observable<string> {
+    const formData = new FormData();
+
+    // Cria o Blob JSON para bater exatamente com o @RequestPart("dados") do Spring Boot
+    const dadosBlob = new Blob([JSON.stringify(dados)], { type: 'application/json' });
+    formData.append('dados', dadosBlob);
+
+    // Anexa as mídias binárias interceptadas pelo input
+    formData.append('imagem', imagem);
+    formData.append('arquivo3d', arquivo3d);
+
+    // Envia o POST Multipart. O Interceptor anexa o Token JWT automaticamente
+    return this.http.post<string>(this.apiUrl, formData, { responseType: 'text' as 'json' });
+  }
+
 }

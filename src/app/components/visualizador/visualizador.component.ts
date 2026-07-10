@@ -1,4 +1,14 @@
-import { Component, ElementRef, Input, ViewChild, afterNextRender, inject, ChangeDetectorRef, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  Input,
+  ViewChild,
+  afterNextRender,
+  inject,
+  ChangeDetectorRef,
+  signal,
+  OnDestroy
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as THREE from 'three';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
@@ -37,8 +47,10 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
     </div>
   `
 })
-export class Visualizador3dComponent {
+export class Visualizador3dComponent implements OnDestroy{
   @ViewChild('rendererContainer', { static: true }) rendererContainer!: ElementRef;
+
+  private animationFrameId: number | null = null;
 
   @Input() set urlArquivo(url: string | null) {
     if (url && this.sceneInitialized) {
@@ -94,6 +106,12 @@ export class Visualizador3dComponent {
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.05;
 
+    this.controls.minPolarAngle = 0;
+    this.controls.maxPolarAngle = Math.PI / 2 + 0.1;
+
+    this.controls.enableZoom = true;
+    this.controls.zoomSpeed = 1.2;
+
     // Configuração de Luz Dupla Anti-Sombras
     const lightAmbient = new THREE.AmbientLight(0xffffff, 0.7);
     this.scene.add(lightAmbient);
@@ -107,13 +125,44 @@ export class Visualizador3dComponent {
     this.scene.add(lightBottom);
 
     const animate = () => {
-      requestAnimationFrame(animate);
+      this.animationFrameId = requestAnimationFrame(animate);
       this.controls.update();
       this.renderer.render(this.scene, this.camera);
     };
-    animate();
+    animate()
 
     window.addEventListener('resize', () => this.onWindowResize());
+  }
+
+  ngOnDestroy(): void {
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
+
+    window.removeEventListener('resize', () => this.onWindowResize());
+
+    // Desaloca geometrias e materiais da cena atual
+    if (this.scene) {
+      this.scene.traverse((object) => {
+        if (!(object instanceof THREE.Mesh)) return;
+
+        if (object.geometry) object.geometry.dispose();
+
+        if (object.material) {
+          if (Array.isArray(object.material)) {
+            object.material.forEach(mat => mat.dispose());
+          } else {
+            object.material.dispose();
+          }
+        }
+      });
+    }
+
+    // Destrói o renderer WebGL e limpa o elemento do DOM
+    if (this.renderer) {
+      this.renderer.dispose();
+      this.renderer.domElement.remove();
+    }
   }
 
   private carregarModelo(url: string): void {
@@ -140,7 +189,7 @@ export class Visualizador3dComponent {
       loader.setCrossOrigin('anonymous');
       loader.load(urlCorrigidaSemCdn, (geometry) => {
         const mesh = new THREE.Mesh(geometry, materialSTL);
-        this.centralizarEAjustarModelo(mesh);
+        this.centralizarEAjustarModelo(mesh, extensao);
       }, undefined, (err) => this.tratarErro(err));
     }
 
@@ -212,7 +261,7 @@ export class Visualizador3dComponent {
           }
         });
 
-        this.centralizarEAjustarModelo(group);
+        this.centralizarEAjustarModelo(group, extensao);
       }, undefined, (err) => this.tratarErro(err));
     } else {
       console.error('Extensão não mapeada para renderização WebGL.');
@@ -221,39 +270,77 @@ export class Visualizador3dComponent {
     }
   }
 
-  private centralizarEAjustarModelo(objeto: THREE.Object3D): void {
-    // CORREÇÃO DE EIXOS DA IMPRESSÃO 3D: Rotaciona X e Y para alinhar o modelo em pé voltado para a tela
-    objeto.rotateX(-Math.PI / 2);
-    objeto.rotateY(Math.PI / 2);
 
-    this.currentMesh = objeto;
-    this.scene.add(objeto);
+  private centralizarEAjustarModelo(objeto: THREE.Object3D, extensao: 'stl' | '3mf'): void {
+    // Limpa o modelo anterior da cena se houver
+    if (this.currentMesh) this.scene.remove(this.currentMesh);
 
-    const box = new THREE.Box3().setFromObject(objeto);
-    const center = box.getCenter(new THREE.Vector3());
-    const size = box.getSize(new THREE.Vector3());
+    // Ativa as sombras em todas as malhas internas
+    objeto.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
 
-    // Fixa o centro de massa do modelo no marco zero (0,0,0)
-    objeto.position.x += (objeto.position.x - center.x);
-    objeto.position.y += (objeto.position.y - center.y);
-    objeto.position.z += (objeto.position.z - center.z);
+    let objetoFinalParaCena: THREE.Object3D;
 
-    // Retirado grade
-    //const maxDim = Math.max(size.x, size.y, size.z);
-    //const gridHelper = new THREE.GridHelper(maxDim * 2, 20, 0x475569, 0x334155);
-    //gridHelper.position.y = box.min.y - center.y;
-    //this.scene.add(gridHelper);
-    const maxDim = Math.max(size.x, size.y, size.z); // Mantido apenas para o cálculo do fov abaixo
+    // ==========================================
+    // TRATAMENTO DO STL
+    // ==========================================
+    if (extensao === 'stl' && objeto instanceof THREE.Mesh) {
+      objeto.geometry.center(); // Centraliza o pivô interno do STL
+      objeto.rotateX(-Math.PI / 2); // Coloca em pé
+      objeto.updateMatrixWorld(true);
+
+      objetoFinalParaCena = objeto;
+    }
+
+      // ==========================================
+      // TRATAMENTO DO 3MF (Mágica do Pivô Centralizado)
+    // ==========================================
+    else {
+      // 1. Cria um grupo invisível que servirá de "pivô de rotação" no centro da tela
+      const pivotContainer = new THREE.Group();
+
+      // 2. Calcula onde está o centro de massa real do modelo 3MF
+      const box3mf = new THREE.Box3().setFromObject(objeto);
+      const center3mf = box3mf.getCenter(new THREE.Vector3());
+
+      // 3. Move o 3MF de forma inversa para dentro do container.
+      // Isso faz com que o centro do modelo fique exatamente alinhado com o (0,0,0) do container.
+      objeto.position.set(-center3mf.x, -center3mf.y, -center3mf.z);
+
+      // 4. Coloca o 3MF dentro do container e rotaciona o CONTAINER (o que garante giro perfeito)
+      pivotContainer.add(objeto);
+      pivotContainer.rotateX(-Math.PI / 2); // Coloca em pé o bloco inteiro
+      pivotContainer.updateMatrixWorld(true);
+
+      objetoFinalParaCena = pivotContainer;
+    }
+
+    // Adiciona o modelo finalizado (ou o container) à cena
+    this.currentMesh = objetoFinalParaCena;
+    this.scene.add(objetoFinalParaCena);
+
+    // ==========================================
+    // ENQUADRAMENTO DA CÂMERA E CONTROLES
+    // ==========================================
+    const finalBox = new THREE.Box3().setFromObject(objetoFinalParaCena);
+    const finalSize = finalBox.getSize(new THREE.Vector3());
+    const maxDim = Math.max(finalSize.x, finalSize.y, finalSize.z);
+
     const fov = this.camera.fov * (Math.PI / 180);
-    let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2)) * 1.6;
-    
-    this.camera.position.set(maxDim, maxDim * 0.9, cameraZ);
+    let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2)) * 1.5;
+
+    // Câmera posicionada de frente mirando o centro estável
+    this.camera.position.set(0, maxDim * 0.3, cameraZ);
     this.camera.lookAt(0, 0, 0);
 
     if (this.controls) {
-      this.controls.target.set(0, 0, 0);
+      this.controls.target.set(0, 0, 0); // Orbita estritamente o centro estável (0,0,0)
       this.controls.maxDistance = cameraZ * 3;
-      this.controls.minDistance = maxDim * 0.4;
+      this.controls.minDistance = maxDim * 0.2;
       this.controls.update();
     }
 

@@ -8,18 +8,6 @@ export const MENU_ITEMS: ItemMenu[] = [
     icon: 'space_dashboard',
     roles: ['CLIENTE', 'ADMINISTRADOR']
   },
-  {
-    route: '/ideia-cliente',
-    label: 'Personalize sua ideia',
-    icon: 'psychology',
-    roles: ['CLIENTE', 'ADMINISTRADOR']
-  },
-  {
-    route: '/politica-privacidade',
-    label: 'Politica de Privacidade',
-    icon: 'gavel',
-    roles: ['CLIENTE', 'ADMINISTRADOR']
-  },
   // PRIVADO: Aparece apenas para CLIENTE autenticado
   {
     route: '/encomenda-cliente',
@@ -28,6 +16,12 @@ export const MENU_ITEMS: ItemMenu[] = [
     roles: ['CLIENTE']
   },
   // PRIVADO: Aparece apenas para ADMINISTRADOR autenticado
+  {
+    route: '/produtos',
+    label: 'Produtos',
+    icon: 'view_in_ar',
+    roles: ['ADMINISTRADOR']
+  },
   {
     route: '/encomendas',
     label: 'Painel Encomendas',
@@ -40,10 +34,17 @@ export const MENU_ITEMS: ItemMenu[] = [
     icon: 'category',
     roles: ['ADMINISTRADOR']
   },
+  // ROTAS PUBLICAS
   {
-    route: '/produtos',
-    label: 'Produtos',
-    icon: 'view_in_ar',
-    roles: ['ADMINISTRADOR']
+    route: '/ideia-cliente',
+    label: 'Personalize sua ideia',
+    icon: 'psychology',
+    roles: ['CLIENTE', 'ADMINISTRADOR']
+  },
+  {
+    route: '/politica-privacidade',
+    label: 'Politica de Privacidade',
+    icon: 'gavel',
+    roles: ['CLIENTE', 'ADMINISTRADOR']
   },
 ];
