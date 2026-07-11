@@ -1,25 +1,27 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject, ApplicationRef } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
 })
 export class LayoutService {
-  // Signals do Angular modernos para gerenciar os estados de abertura
+
+  private appRef = inject(ApplicationRef);
+
   isDesktopExpanded = signal(true);
   isMobileOpen = signal(false);
 
   toggleDesktopMenu() {
-    console.log('Toggle toggleDesktopMenu Menu');
     this.isDesktopExpanded.update(value => !value);
+    this.appRef.tick();
   }
 
   toggleMobileMenu() {
-    console.log('Toggle Mobile Menu');
     this.isMobileOpen.update(value => !value);
+    this.appRef.tick();
   }
 
   closeMobileMenu() {
-    console.log('Toggle closeMobileMenu Menu');
     this.isMobileOpen.set(false);
+    this.appRef.tick();
   }
 }

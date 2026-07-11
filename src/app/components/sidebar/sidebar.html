@@ -1,5 +1,5 @@
 <!-- SIDEBAR DESKTOP -->
-<aside class="w-full flex flex-col min-h-screen bg-slate-900 text-slate-300 border-r border-slate-800 overflow-hidden">
+<aside class="hidden md:flex w-full flex-col min-h-screen bg-slate-900 text-slate-300 border-r border-slate-800 overflow-hidden h-full">
 
   <div class="p-4 font-bold text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-800 whitespace-nowrap">
     {{ layoutService.isDesktopExpanded() ? 'Navegação Principal' : 'MENU' }}
@@ -39,3 +39,33 @@
     }
   </nav>
 </aside>
+
+
+@if (layoutService.isMobileOpen()) {
+  <!-- Fundo escurecido (Overlay) -->
+  <div class="fixed inset-0 z-40 bg-black/50 md:hidden" (click)="layoutService.toggleMobileMenu()"></div>
+
+  <!-- Painel Lateral Mobile -->
+  <aside class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 p-4 shadow-xl md:hidden">
+    <div class="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+      <span class="font-bold text-sm tracking-wider uppercase text-slate-500">Menu</span>
+      <!-- Botão para fechar -->
+      <button (click)="layoutService.toggleMobileMenu()" class="text-slate-400 hover:text-white">
+        <i class="material-icons">close</i>
+      </button>
+    </div>
+
+    <!-- Navegação Mobile -->
+    <nav class="space-y-2">
+      @for (item of menuFiltrado; track item.label) {
+        <a [routerLink]="item.route"
+           routerLinkActive="bg-blue-600 text-white shadow-lg"
+           (click)="layoutService.toggleMobileMenu()"
+           class="flex items-center p-3 rounded-xl text-sm font-medium transition-all hover:bg-slate-800 hover:text-white">
+          <i class="material-icons mr-3 text-slate-400">{{ item.icon }}</i>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+  </aside>
+}

@@ -7,9 +7,10 @@
   <div class="flex flex-1 w-full overflow-hidden relative z-10">
 
     <app-sidebar
-      [class.w-64]="layoutService.isDesktopExpanded()"
-      [class.w-20]="!layoutService.isDesktopExpanded()"
-      class="hidden md:flex flex-col transition-all duration-300 ease-in-out">
+      [class.w-0]="true"
+      [class.md:w-64]="layoutService.isDesktopExpanded()"
+      [class.md:w-20]="!layoutService.isDesktopExpanded()"
+      class="flex flex-col transition-all duration-300 ease-in-out">
     </app-sidebar>
 
     <!-- Painel da direita modificado para rolar o conteúdo junto com o Footer -->

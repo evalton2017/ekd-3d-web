@@ -14,9 +14,9 @@ import { ItemMenu } from '../dto/item-menu';
 })
 export class SidebarComponent implements OnInit, OnDestroy {
   public layoutService = inject(LayoutService);
-  private keycloak = inject(Keycloak);
-  private cdr = inject(ChangeDetectorRef);
-  private platformId = inject(PLATFORM_ID); // Injeta o detector de plataforma
+  private readonly keycloak = inject(Keycloak);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly platformId = inject(PLATFORM_ID); // Injeta o detector de plataforma
 
   menuCompleto: ItemMenu[] = MENU_ITEMS;
   menuFiltrado: ItemMenu[] = [];
@@ -89,8 +89,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
       return item.roles.some(role => this.userRoles.includes(role.toUpperCase()));
     });
-
-    // MUDANÇA CRÍTICA PARA ZONELESS: O detectChanges força o motor a redesenhar a lista de <li> imediatamente
+    
     this.cdr.detectChanges();
   }
 }

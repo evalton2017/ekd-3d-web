@@ -90,9 +90,8 @@ export const createWithAppConfig = (isBrowser: boolean): ApplicationConfig => {
         }
 
         const urlAbsolutaSso = window.location.origin + urlLimpa;
-        console.log('[Keycloak Boot] Iniciando SSO silencioso com:', urlAbsolutaSso);
 
-        // RETORNA DIRETAMENTE A PROMISE: O Keycloak vai ler o environment da Factory e iniciar
+       // RETORNA DIRETAMENTE A PROMISE: O Keycloak vai ler o environment da Factory e iniciar
         return keycloak.init({
           onLoad: 'check-sso',
           silentCheckSsoRedirectUri: urlAbsolutaSso,

@@ -15,14 +15,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isLoggedIn = false;
   userName = '';
   userInitials = '';
-
-  // Flag para sabermos se o Angular já terminou a renderização do servidor
   isBrowser = false;
 
   public layoutService = inject(LayoutService);
-  private keycloak = inject(Keycloak);
-  private cdr = inject(ChangeDetectorRef);
-  private platformId = inject(PLATFORM_ID); // Injeta o identificador de plataforma
+  private readonly keycloak = inject(Keycloak);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly platformId = inject(PLATFORM_ID);
 
   private monitorTimer: any;
 
@@ -45,7 +43,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       if (this.keycloak.authenticated && this.keycloak.tokenParsed) {
         this.isLoggedIn = true;
         const token = this.keycloak.tokenParsed as any;
-        this.userName = token.name || token.preferred_username || 'Usuário';
+        this.userName = token.name ?? token.preferred_username ?? 'Usuário';
         this.gerarIniciais();
 
         // Executa a filtragem caso estejamos na sidebar
@@ -53,9 +51,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
           (this as any).filtrarMenus();
         }
 
-        console.log('[Auth] Componente resgatou login pré-existente:', this.userName);
-
-        // FORÇA O DESCONGELAMENTO: Avisa o Zoneless para destruir os Skeletons e pintar o usuário
         this.cdr.detectChanges();
         return true;
       }
@@ -79,11 +74,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
       if (logou || ciclo > 10) {
         clearInterval(this.monitorTimer);
 
-        // Se deu timeout e realmente não está logado, atualiza para tirar o esqueleto e mostrar o botão "Entrar"
         if (!logou) {
           this.isLoggedIn = false;
           if (typeof (this as any).filtrarMenus === 'function') {
-            (this as any).filtrarMenus(); // Limpa e mostra apenas menus públicos na sidebar
+            (this as any).filtrarMenus();
           }
           this.cdr.detectChanges();
         }
