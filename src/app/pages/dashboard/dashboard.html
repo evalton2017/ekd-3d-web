@@ -29,11 +29,11 @@
         <div class="p-4 flex flex-col flex-1">
           <h3 class="font-bold text-white text-sm line-clamp-1">{{ produto.nome }}</h3>
           <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between w-full gap-2">
-            <div class="flex-1 min-w-0 text-left">
+            <!--div class="flex-1 min-w-0 text-left">
               <span class="text-sm font-extrabold text-blue-500 block">
                 {{ produto.precoBase | currency:'BRL':'symbol':'1.2-2' }}
               </span>
-            </div>
+            </div-->
             <button (click)="abrirModal3D(produto)" class="w-[110px] h-9 inline-flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] rounded-xl flex-shrink-0">
               Visualizar
             </button>
